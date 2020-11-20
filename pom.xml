@@ -28,7 +28,7 @@
 
     <groupId>org.apache.curator</groupId>
     <artifactId>apache-curator</artifactId>
-    <version>5.1.1-SNAPSHOT</version>
+    <version>5.1.1-20201120-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Apache Curator</name>
@@ -38,13 +38,13 @@
     <url>http://curator.apache.org</url>
     <inceptionYear>2011</inceptionYear>
 
-    <licenses>
+    <!--<licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
             <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
             <distribution>repo</distribution>
         </license>
-    </licenses>
+    </licenses>-->
 
     <organization>
         <name>The Apache Software Foundation</name>
@@ -674,11 +674,11 @@
                     <version>0.1</version>
                 </plugin>
 
-                <plugin>
+                <!--<plugin>
                     <groupId>com.mycila.maven-license-plugin</groupId>
                     <artifactId>maven-license-plugin</artifactId>
                     <version>${maven-license-plugin-version}</version>
-                </plugin>
+                </plugin>-->
 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -851,7 +851,7 @@
                 </executions>
             </plugin>
 
-            <plugin>
+            <!--<plugin>
                 <groupId>com.mycila.maven-license-plugin</groupId>
                 <artifactId>maven-license-plugin</artifactId>
                 <configuration>
@@ -886,7 +886,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin>-->
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

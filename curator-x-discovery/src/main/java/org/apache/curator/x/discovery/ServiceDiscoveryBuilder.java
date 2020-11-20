@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -23,15 +23,16 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.x.discovery.details.InstanceSerializer;
 import org.apache.curator.x.discovery.details.JsonInstanceSerializer;
 import org.apache.curator.x.discovery.details.ServiceDiscoveryImpl;
+import org.apache.curator.x.discovery.event.ICallBackEvent;
 
-public class ServiceDiscoveryBuilder<T>
-{
+public class ServiceDiscoveryBuilder<T> {
     private CuratorFramework client;
     private String basePath;
     private InstanceSerializer<T> serializer;
     private ServiceInstance<T> thisInstance;
     private Class<T> payloadClass;
     private boolean watchInstances = false;
+    private ICallBackEvent callBackEvent;
 
     /**
      * Return a new builder.
@@ -40,8 +41,7 @@ public class ServiceDiscoveryBuilder<T>
      *                     if your instances don't need a payload)
      * @return new builder
      */
-    public static <T> ServiceDiscoveryBuilder<T> builder(Class<T> payloadClass)
-    {
+    public static <T> ServiceDiscoveryBuilder<T> builder(Class<T> payloadClass) {
         return new ServiceDiscoveryBuilder<T>(payloadClass);
     }
 
@@ -51,10 +51,8 @@ public class ServiceDiscoveryBuilder<T>
      *
      * @return new service discovery
      */
-    public ServiceDiscovery<T> build()
-    {
-        if ( serializer == null )
-        {
+    public ServiceDiscovery<T> build() {
+        if (serializer == null) {
             serializer(new JsonInstanceSerializer<T>(payloadClass));
         }
         return new ServiceDiscoveryImpl<T>(client, basePath, serializer, thisInstance, watchInstances);
@@ -66,8 +64,7 @@ public class ServiceDiscoveryBuilder<T>
      * @param client client
      * @return this
      */
-    public ServiceDiscoveryBuilder<T> client(CuratorFramework client)
-    {
+    public ServiceDiscoveryBuilder<T> client(CuratorFramework client) {
         this.client = client;
         return this;
     }
@@ -78,9 +75,13 @@ public class ServiceDiscoveryBuilder<T>
      * @param basePath base path
      * @return this
      */
-    public ServiceDiscoveryBuilder<T> basePath(String basePath)
-    {
+    public ServiceDiscoveryBuilder<T> basePath(String basePath) {
         this.basePath = basePath;
+        return this;
+    }
+
+    public ServiceDiscoveryBuilder<T> calaBackEvent(ICallBackEvent callBackEvent) {
+        this.callBackEvent = callBackEvent;
         return this;
     }
 
@@ -90,8 +91,7 @@ public class ServiceDiscoveryBuilder<T>
      * @param serializer the serializer
      * @return this
      */
-    public ServiceDiscoveryBuilder<T> serializer(InstanceSerializer<T> serializer)
-    {
+    public ServiceDiscoveryBuilder<T> serializer(InstanceSerializer<T> serializer) {
         this.serializer = serializer;
         return this;
     }
@@ -102,8 +102,7 @@ public class ServiceDiscoveryBuilder<T>
      * @param thisInstance initial instance
      * @return this
      */
-    public ServiceDiscoveryBuilder<T> thisInstance(ServiceInstance<T> thisInstance)
-    {
+    public ServiceDiscoveryBuilder<T> thisInstance(ServiceInstance<T> thisInstance) {
         this.thisInstance = thisInstance;
         return this;
     }
@@ -116,14 +115,12 @@ public class ServiceDiscoveryBuilder<T>
      * @param watchInstances true to watch instances
      * @return this
      */
-    public ServiceDiscoveryBuilder<T> watchInstances(boolean watchInstances)
-    {
+    public ServiceDiscoveryBuilder<T> watchInstances(boolean watchInstances) {
         this.watchInstances = watchInstances;
         return this;
     }
 
-    ServiceDiscoveryBuilder(Class<T> payloadClass)
-    {
+    ServiceDiscoveryBuilder(Class<T> payloadClass) {
         this.payloadClass = payloadClass;
     }
 }
