@@ -80,7 +80,7 @@ public class ServiceDiscoveryBuilder<T> {
         return this;
     }
 
-    public ServiceDiscoveryBuilder<T> calaBackEvent(ICallBackEvent callBackEvent) {
+    public ServiceDiscoveryBuilder<T> callBackEvent(ICallBackEvent callBackEvent) {
         this.callBackEvent = callBackEvent;
         return this;
     }
