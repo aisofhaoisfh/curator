@@ -70,6 +70,7 @@ public class ServiceDiscoveryImpl<T> implements ServiceDiscovery<T> {
     private final Collection<ServiceProvider<T>> providers = Sets.newSetFromMap(Maps.<ServiceProvider<T>, Boolean>newConcurrentMap());
     private final boolean watchInstances;
     private final ICallBackEvent callBackEvent;
+    private PathChildrenCache pathChildrenCache;
     private final ConnectionStateListener connectionStateListener = new ConnectionStateListener() {
         @Override
         public void stateChanged(CuratorFramework client, ConnectionState newState) {
@@ -89,7 +90,6 @@ public class ServiceDiscoveryImpl<T> implements ServiceDiscovery<T> {
     private static class Entry<T> {
         private volatile ServiceInstance<T> service;
         private volatile NodeCache cache;
-        private volatile PathChildrenCache pathChildrenCache;
 
         private Entry(ServiceInstance<T> service) {
             this.service = service;
@@ -113,10 +113,12 @@ public class ServiceDiscoveryImpl<T> implements ServiceDiscovery<T> {
         this.basePath = Preconditions.checkNotNull(basePath, "basePath cannot be null");
         this.serializer = Preconditions.checkNotNull(serializer, "serializer cannot be null");
         this.callBackEvent = callBackEvent;
+        if (callBackEvent != null) {
+            this.pathChildrenCache = makePathChildrenCache(basePath);
+        }
         if (thisInstance != null) {
             Entry<T> entry = new Entry<T>(thisInstance);
             entry.cache = makeNodeCache(thisInstance);
-            entry.pathChildrenCache = makePathChildrenCache(basePath);
             services.put(thisInstance.getId(), entry);
         }
     }
@@ -409,14 +411,6 @@ public class ServiceDiscoveryImpl<T> implements ServiceDiscovery<T> {
      */
     private PathChildrenCache makePathChildrenCache(final String basePath) {
         final PathChildrenCache pathChildrenCache = new PathChildrenCache(client, basePath, true);
-        try {
-            pathChildrenCache.start();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return null;
-        } catch (Exception ex) {
-            log.error("Could not start path children cache for: " + basePath, ex);
-        }
 
         PathChildrenCacheListener pathChildrenCacheListener = new PathChildrenCacheListener() {
             @Override
@@ -427,7 +421,8 @@ public class ServiceDiscoveryImpl<T> implements ServiceDiscovery<T> {
                         || event.getType() == PathChildrenCacheEvent.Type.INITIALIZED) {
                     ChildData childData = event.getData();
                     String subPath = childData.getPath();
-                    if (event.getType() == PathChildrenCacheEvent.Type.CHILD_ADDED) {
+                    if (event.getType() == PathChildrenCacheEvent.Type.CHILD_ADDED ||
+                            event.getType() == PathChildrenCacheEvent.Type.INITIALIZED) {
                         //add
                         PathChildrenCache subCache = makeSubPathChildrenCache(subPath);
                         subListenerEventMap.putIfAbsent(subPath, subCache);
@@ -442,6 +437,15 @@ public class ServiceDiscoveryImpl<T> implements ServiceDiscovery<T> {
             }
         };
         pathChildrenCache.getListenable().addListener(pathChildrenCacheListener);
+
+        try {
+            pathChildrenCache.start();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+        } catch (Exception ex) {
+            log.error("Could not start path children cache for: " + basePath, ex);
+        }
         return pathChildrenCache;
     }
 
@@ -452,14 +456,7 @@ public class ServiceDiscoveryImpl<T> implements ServiceDiscovery<T> {
      */
     private PathChildrenCache makeSubPathChildrenCache(final String subPath) {
         final PathChildrenCache subCache = new PathChildrenCache(client, subPath, true);
-        try {
-            subCache.start();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return null;
-        } catch (Exception ex) {
-            log.error("Could not start sub path children cache for: " + subPath, ex);
-        }
+
         PathChildrenCacheListener subListener = new PathChildrenCacheListener() {
             @Override
             public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
@@ -469,7 +466,8 @@ public class ServiceDiscoveryImpl<T> implements ServiceDiscovery<T> {
                         || event.getType() == PathChildrenCacheEvent.Type.INITIALIZED) {
                     ChildData childData = event.getData();
                     ServiceInstance<T> instance = serializer.deserialize(childData.getData());
-                    if (event.getType() == PathChildrenCacheEvent.Type.CHILD_ADDED) {
+                    if (event.getType() == PathChildrenCacheEvent.Type.CHILD_ADDED ||
+                            event.getType() == PathChildrenCacheEvent.Type.INITIALIZED) {
                         //add
                         if (callBackEvent != null) {
                             callBackEvent.onEvent(EventTypes.REGISTRY, instance);
@@ -484,6 +482,15 @@ public class ServiceDiscoveryImpl<T> implements ServiceDiscovery<T> {
             }
         };
         subCache.getListenable().addListener(subListener);
+
+        try {
+            subCache.start();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+        } catch (Exception ex) {
+            log.error("Could not start sub path children cache for: " + subPath, ex);
+        }
         return subCache;
     }
 

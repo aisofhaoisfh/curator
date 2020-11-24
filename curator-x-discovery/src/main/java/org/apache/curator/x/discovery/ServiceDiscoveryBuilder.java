@@ -60,7 +60,7 @@ public class ServiceDiscoveryBuilder<T> {
         if (serializer == null) {
             serializer(new JsonInstanceSerializer<T>(payloadClass));
         }
-        return new ServiceDiscoveryImpl<T>(client, basePath, serializer, thisInstance, watchInstances);
+        return new ServiceDiscoveryImpl<T>(client, basePath, serializer, thisInstance, watchInstances, callBackEvent);
     }
 
     /**
